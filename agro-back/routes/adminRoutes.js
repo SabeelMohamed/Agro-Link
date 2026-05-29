@@ -5,9 +5,9 @@ const Admin = require('../models/Admin');
 
 router.post('/init', async (req, res) => {
   try {
-    const existingAdmin = await Admin.findOne({ username: 'admin' });
+    const existingAdmin = await Admin.findOne({ username: 'admin@gmail.com' });
     if (!existingAdmin) {
-      const admin = new Admin({ username: 'admin', password: 'admin123' });
+      const admin = new Admin({ username: 'admin@gmail.com', password: 'admin@123' });
       await admin.save();
       res.status(201).json({ message: 'Admin initialized' });
     } else {

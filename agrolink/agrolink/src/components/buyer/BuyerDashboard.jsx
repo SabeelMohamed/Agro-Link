@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCartPlus, faTrash, faCheck } from '@fortawesome/free-solid-svg-icons';
+import { useSearchParams } from 'react-router-dom';
 import { loadStripe } from '@stripe/stripe-js';
 import { API_BASE_URL } from '../../config/api';
 
@@ -9,10 +10,13 @@ import { API_BASE_URL } from '../../config/api';
 const stripePromise = loadStripe('pk_test_51REZsKQCWR8hVDB5GMIjhxmEBTNQoTajifWlgKpNzteYvpRRFsAWxe4xI5YdwbOt5CZtCsWNEdjUDlL7exSY2dJ000LICovpqw');
 
 const BuyerDashboard = () => {
+  const [searchParams] = useSearchParams();
+  const sessionId = searchParams.get('session_id');
   const [cartItems, setCartItems] = useState([]);
   const [products, setProducts] = useState([]);
   const [showOrderForm, setShowOrderForm] = useState(false);
   const [buyerDetails, setBuyerDetails] = useState({ name: '', address: '', phone: '' });
+  const [paymentMessage, setPaymentMessage] = useState('');
 
   const defaultProducts = [
     {
@@ -50,6 +54,26 @@ const BuyerDashboard = () => {
     };
     fetchProducts();
   }, []);
+
+  useEffect(() => {
+    const confirmPayment = async () => {
+      if (!sessionId) return;
+
+      try {
+        const response = await axios.post(`${API_BASE_URL}/payment/confirm-checkout-session`, { sessionId });
+        if (response.data.paymentStatus === 'paid') {
+          setPaymentMessage('Payment successful. Your order has been confirmed.');
+        } else {
+          setPaymentMessage('Payment received. Your order will be confirmed shortly.');
+        }
+      } catch (error) {
+        console.error('Error confirming payment:', error);
+        setPaymentMessage('Payment completed, but we could not confirm the order automatically.');
+      }
+    };
+
+    confirmPayment();
+  }, [sessionId]);
 
   const addToCart = (product) => {
     const exists = cartItems.find(item => item._id === product._id);
@@ -104,6 +128,11 @@ const BuyerDashboard = () => {
     <div className="dashboard-container">
       <div className="container">
         <h2>Buyer Dashboard</h2>
+        {paymentMessage && (
+          <div className="alert alert-success" style={{ marginBottom: '1rem' }}>
+            {paymentMessage}
+          </div>
+        )}
 
         {/* Product Listing */}
         <div className="products-section">
@@ -112,7 +141,15 @@ const BuyerDashboard = () => {
             {products.map(product => (
               <div key={product._id} className="product-card">
                 <div className="product-image">
-                  {product.image ? <img src={product.image} alt={product.name} /> : <div>No Image</div>}
+                  {product.image ? (
+                    <img
+                      src={product.image}
+                      alt={product.name}
+                      onError={(e) => { e.target.onerror = null; e.target.src = '/assets/logo.jpg'; }}
+                    />
+                  ) : (
+                    <div>No Image</div>
+                  )}
                 </div>
                 <div className="product-info">
                   <h3>{product.name}</h3>

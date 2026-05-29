@@ -31,7 +31,7 @@ router.post("/create-checkout-session", async (req, res) => {
       payment_method_types: ["card"],
       line_items,
       mode: "payment",
-      success_url: `${frontendUrl}/success?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${frontendUrl}/buyer/dashboard?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${frontendUrl}/cancel`,
       metadata: {
         buyer_name: buyerDetails?.name || '',

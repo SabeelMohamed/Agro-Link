@@ -131,7 +131,11 @@ function Products() {
           {filteredProducts.map(product => (
             <div key={product.id} className="product-card">
               <div className="product-image">
-                <img src={product.image} alt={product.name} />
+                <img
+                  src={product.image}
+                  alt={product.name}
+                  onError={(e) => { e.target.onerror = null; e.target.src = '/assets/logo.jpg'; }}
+                />
               </div>
               <div className="product-info">
                 <h3>{product.name}</h3>
